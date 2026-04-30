@@ -45,16 +45,16 @@ Use a Haiku agent to check whether the pull request is eligible for review. The 
 
 If the agent returns `SKIP`, stop here and do not proceed.
 
-## Step 2: Locate CLAUDE.md files (Haiku agent)
+## Step 2: Locate guidance files (Haiku agent)
 
-Use a Haiku agent to find relevant CLAUDE.md guidance. The agent should:
+Use a Haiku agent to find relevant `CLAUDE.md` and `AGENTS.md` guidance. The agent should:
 
 1. Get the list of files changed in the PR via `mcp__azure-devops__repo_get_pull_request_by_id` (or from `git diff --name-only <targetBranch>...<sourceBranch>`)
 2. Identify the unique directory paths of changed files
-3. Check for CLAUDE.md existence at:
+3. Check for `CLAUDE.md` and `AGENTS.md` existence at:
    - The repo root
    - Each unique directory that contains a changed file, walking up to the root
-4. Return the list of CLAUDE.md file paths (relative to repo root) that exist
+4. Return the list of `CLAUDE.md` and `AGENTS.md` file paths (relative to repo root) that exist
 
 ## Step 3: Summarize the PR (Haiku agent)
 
@@ -70,11 +70,11 @@ Launch 5 Sonnet agents in parallel. Each should independently review the PR and 
 - The PR diff (from `git diff <targetBranch>...<sourceBranch>`)
 - The list of changed files
 - The PR summary from step 3
-- The list of CLAUDE.md paths from step 2
+- The list of `CLAUDE.md` and `AGENTS.md` paths from step 2
 
-### Agent 1 — CLAUDE.md compliance
+### Agent 1 — Guidance file compliance
 
-Read each CLAUDE.md file from the list. Audit the PR diff for violations of CLAUDE.md instructions. Note: CLAUDE.md is guidance for Claude when writing code, so not all instructions apply during review. Only flag issues that clearly apply to the code changes.
+Read each `CLAUDE.md` and `AGENTS.md` file from the list. Audit the PR diff for violations of those instructions. Note: these files are guidance for AI agents when writing code, so not all instructions apply during review. Only flag issues that clearly apply to the code changes.
 
 ### Agent 2 — Bug scan
 
@@ -105,14 +105,14 @@ Read the full content of each changed file. Check whether the PR's changes compl
 
 For each issue identified in step 4, launch a parallel Haiku agent that scores the issue's confidence on a 0–100 scale:
 
-Provide the agent with: the PR diff, the issue description, and the CLAUDE.md file list (the agent should read those CLAUDE.md files).
+Provide the agent with: the PR diff, the issue description, and the guidance file list (the agent should read those `CLAUDE.md` and `AGENTS.md` files).
 
 Scoring rubric (provide this verbatim to the agent):
 
 - **0**: Not confident at all. This is a false positive that doesn't stand up to light scrutiny, or is a pre-existing issue.
-- **25**: Somewhat confident. This might be a real issue, but may also be a false positive. The agent wasn't able to verify it's real. If stylistic, it was not explicitly called out in the relevant CLAUDE.md.
+- **25**: Somewhat confident. This might be a real issue, but may also be a false positive. The agent wasn't able to verify it's real. If stylistic, it was not explicitly called out in the relevant `CLAUDE.md` or `AGENTS.md`.
 - **50**: Moderately confident. The agent verified this is a real issue, but it may be a nitpick or rare in practice. Relative to the PR, it's not very important.
-- **75**: Highly confident. The agent double-checked and confirmed it is very likely a real issue that will be hit in practice. The existing approach is insufficient. Either very important and directly impacts functionality, or directly mentioned in the relevant CLAUDE.md.
+- **75**: Highly confident. The agent double-checked and confirmed it is very likely a real issue that will be hit in practice. The existing approach is insufficient. Either very important and directly impacts functionality, or directly mentioned in the relevant `CLAUDE.md` or `AGENTS.md`.
 - **100**: Absolutely certain. The agent confirmed it is definitely a real issue that will happen frequently in practice. Evidence directly confirms this.
 
 Filter out any issues scoring below 80.
@@ -123,7 +123,7 @@ Examples of false positives (for guidance to scoring agents):
 - Pedantic nitpicks a senior engineer wouldn't call out
 - Issues a linter, typechecker, or compiler would catch — assume CI handles these
 - General code quality issues (lack of test coverage, general security) unless required in CLAUDE.md
-- Issues mentioned in CLAUDE.md but explicitly silenced in code (e.g. lint-ignore comment)
+- Issues mentioned in `CLAUDE.md` or `AGENTS.md` but explicitly silenced in code (e.g. lint-ignore comment)
 - Changes in functionality that are likely intentional or directly related to the broader change
 - Real issues, but on lines the PR did not modify
 
@@ -161,7 +161,7 @@ https://dev.azure.com/{org}/{project}/_git/{repo}?path=/{file}&version=GC{sha}&l
 
 Found N issue(s):
 
-1. <brief description> (CLAUDE.md says "<exact quote>")
+1. <brief description> (CLAUDE.md / AGENTS.md says "<exact quote>")
 
 <ADO file permalink with line range>
 
@@ -180,7 +180,7 @@ Found N issue(s):
 ```markdown
 ### Code review
 
-No issues found. Checked for bugs and CLAUDE.md compliance.
+No issues found. Checked for bugs and CLAUDE.md/AGENTS.md compliance.
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 ```
